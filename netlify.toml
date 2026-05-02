@@ -1,6 +1,5 @@
 [functions]
   directory = "netlify/functions"
-  timeout = 30
 
 [[redirects]]
   from = "/api/anthropic"
