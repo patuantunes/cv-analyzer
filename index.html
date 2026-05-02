@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="CV Analyzer">
+<meta name="theme-color" content="#0f0e0d">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>CV Analyzer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --ink: #0f0e0d;
+    --paper: #f5f2ed;
+    --cream: #ede9e2;
+    --rust: #c4522a;
+    --sage: #4a6741;
+    --gold: #b89a4e;
+    --muted: #7a7570;
+    --border: #d4cfc8;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overscroll-behavior: none;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  /* Header */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: calc(16px + var(--safe-top)) 20px 16px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    letter-spacing: -0.02em;
+  }
+
+  header span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(245,242,237,0.5);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Scrollable content */
+  .scroll-content {
+    padding: 24px 20px;
+    padding-bottom: calc(100px + var(--safe-bottom));
+  }
+
+  /* Step labels */
+  .step-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  /* Upload zone */
+  .upload-section { margin-bottom: 24px; }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--cream);
+    position: relative;
+    transition: border-color 0.2s;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .drop-zone.has-file {
+    border-style: solid;
+    border-color: var(--sage);
+    padding: 20px;
+  }
+
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  .drop-icon { font-size: 1.8rem; display: block; margin-bottom: 10px; }
+
+  .drop-zone p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .drop-zone strong { color: var(--rust); }
+
+  .file-info {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .file-info.visible { display: flex; }
+
+  .file-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--sage);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .file-details { flex: 1; min-width: 0; }
+
+  .file-details strong {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--sage);
+  }
+
+  .file-details span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  /* Job textarea */
+  .job-section { margin-bottom: 24px; }
+
+  textarea {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    background: var(--cream);
+    color: var(--ink);
+    resize: none;
+    min-height: 90px;
+    outline: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s;
+  }
+
+  textarea:focus { border-color: var(--rust); }
+  textarea::placeholder { color: var(--muted); }
+
+  /* Error */
+  .error-msg {
+    display: none;
+    background: #f5e8e3;
+    border-left: 3px solid var(--rust);
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    color: var(--rust);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .error-msg.visible { display: block; }
+
+  /* Bottom CTA bar */
+  .cta-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 20px calc(12px + var(--safe-bottom));
+    background: var(--paper);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+  }
+
+  .analyze-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .analyze-btn:active:not(:disabled) { background: var(--rust); }
+  .analyze-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Loading screen */
+  .loading-screen {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+
+  .loading-screen.visible { display: flex; }
+
+  .loader-line {
+    width: 140px;
+    height: 1px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .loader-line::after {
+    content: '';
+    position: absolute;
+    left: -40%;
+    top: 0;
+    width: 40%;
+    height: 100%;
+    background: var(--rust);
+    animation: slide 1.1s ease-in-out infinite;
+  }
+
+  @keyframes slide { to { left: 140%; } }
+
+  .loading-screen p {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  /* Results */
+  .results-screen {
+    display: none;
+    min-height: 100vh;
+    flex-direction: column;
+  }
+
+  .results-screen.visible { display: flex; }
+
+  .results-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: calc(16px + var(--safe-top)) 20px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .results-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: rgba(245,242,237,0.6);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+
+  .results-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 2px;
+  }
+
+  .score-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+
+  .score-high { background: rgba(74,103,65,0.3); color: #a8d4a0; }
+  .score-mid { background: rgba(184,154,78,0.3); color: #e0c97a; }
+  .score-low { background: rgba(196,82,42,0.3); color: #f0a080; }
+
+  /* Feedback cards */
+  .results-scroll {
+    padding: 20px 20px calc(40px + var(--safe-bottom));
+    flex: 1;
+  }
+
+  .feedback-card {
+    background: var(--cream);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border-left: 3px solid var(--rust);
+  }
+
+  .feedback-card.positive { border-left-color: var(--sage); }
+  .feedback-card.neutral { border-left-color: var(--gold); }
+
+  .card-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+
+  .card-text {
+    font-size: 0.85rem;
+    line-height: 1.65;
+    color: #3a3835;
+  }
+
+  .card-text ul { padding-left: 16px; }
+  .card-text li { margin-bottom: 5px; }
+
+  /* Resumen card special */
+  .resumen-card {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .resumen-card .card-tag { color: rgba(245,242,237,0.4); }
+  .resumen-card .card-text { color: rgba(245,242,237,0.85); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<!-- MAIN FORM -->
+<div id="form-screen">
+  <header>
+    <h1>CV Analyzer</h1>
+    <span>IA · Español</span>
+  </header>
+
+  <div class="scroll-content">
+
+    <!-- Upload -->
+    <div class="upload-section">
+      <span class="step-label">01 · Currículum en PDF</span>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept=".pdf" />
+        <div id="drop-prompt">
+          <span class="drop-icon">📄</span>
+          <p>Toca para seleccionar<br><strong>el PDF de tu CV</strong></p>
+        </div>
+        <div class="file-info" id="file-info">
+          <div class="file-icon">✓</div>
+          <div class="file-details">
+            <strong id="file-name-text"></strong>
+            <span>PDF listo para analizar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job context -->
+    <div class="job-section">
+      <span class="step-label">02 · Puesto o contexto (opcional)</span>
+      <textarea id="job-input" placeholder="Ej: Busco trabajo como Director de Ventas B2B en empresa tecnológica..."></textarea>
+    </div>
+
+    <!-- Error -->
+    <div class="error-msg" id="error-msg"></div>
+
+  </div>
+
+  <!-- Fixed CTA -->
+  <div class="cta-bar">
+    <button class="analyze-btn" id="analyze-btn" disabled>Analizar CV</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loader-line"></div>
+  <p>Analizando el CV...</p>
+</div>
+
+<!-- RESULTS -->
+<div class="results-screen" id="results-screen">
+  <div class="results-header">
+    <div class="results-header-top">
+      <button class="back-btn" id="back-btn">← Nuevo análisis</button>
+    </div>
+    <h2>Análisis del CV</h2>
+    <div id="score-badge" class="score-badge"></div>
+  </div>
+  <div class="results-scroll" id="results-scroll"></div>
+</div>
+
+<script>
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  let pdfBase64 = null;
+
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const analyzeBtn = document.getElementById('analyze-btn');
+
+  fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+  function handleFile(file) {
+    if (!file || file.type !== 'application/pdf') return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      pdfBase64 = reader.result.split(',')[1];
+      document.getElementById('file-name-text').textContent = file.name;
+      document.getElementById('drop-prompt').style.display = 'none';
+      document.getElementById('file-info').classList.add('visible');
+      dropZone.classList.add('has-file');
+      analyzeBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  analyzeBtn.addEventListener('click', analyze);
+  document.getElementById('back-btn').addEventListener('click', reset);
+
+  async function analyze() {
+    if (!pdfBase64) return;
+    const jobContext = document.getElementById('job-input').value.trim();
+    const errorEl = document.getElementById('error-msg');
+    errorEl.classList.remove('visible');
+
+    document.getElementById('form-screen').style.display = 'none';
+    document.getElementById('loading-screen').classList.add('visible');
+
+    const systemPrompt = `Eres un experto en recursos humanos y desarrollo profesional con más de 20 años de experiencia. Analizas CVs en profundidad y das feedback honesto, directo y constructivo en español.
+
+Devuelve ÚNICAMENTE un JSON con esta estructura exacta (sin markdown, sin backticks):
+
+{
+  "puntuacion": número del 1 al 10,
+  "resumen": "2-3 frases de valoración general honesta",
+  "fortalezas": {
+    "titulo": "Puntos fuertes",
+    "items": ["item1", "item2", "item3"]
+  },
+  "mejoras": {
+    "titulo": "Oportunidades de mejora",
+    "items": ["item con explicación concreta", "item2", "item3"]
+  },
+  "formato": {
+    "titulo": "Formato y presentación",
+    "texto": "feedback sobre estructura, claridad y longitud"
+  },
+  "fit": {
+    "titulo": "Encaje profesional",
+    "texto": "ajuste al puesto indicado o perfil y roles recomendados"
+  },
+  "siguiente_paso": {
+    "titulo": "Acción prioritaria",
+    "texto": "una sola acción concreta que más mejoraría el CV"
+  }
+}`;
+
+    try {
+      const response = await fetch("/api/anthropic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{
+            role: "user",
+            content: [
+              { type: "document", source: { type: "base64", media_type: "application/pdf", data: pdfBase64 } },
+              { type: "text", text: jobContext ? `Analiza este CV. Contexto: ${jobContext}` : "Analiza este CV con feedback general profesional." }
+            ]
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const text = data.content?.find(b => b.type === 'text')?.text || '';
+      const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+      renderResults(parsed);
+
+    } catch (err) {
+      document.getElementById('loading-screen').classList.remove('visible');
+      document.getElementById('form-screen').style.display = 'block';
+      errorEl.textContent = 'Error al analizar el CV. Comprueba tu conexión e inténtalo de nuevo.';
+      errorEl.classList.add('visible');
+    }
+  }
+
+  function renderResults(data) {
+    document.getElementById('loading-screen').classList.remove('visible');
+
+    const score = data.puntuacion || 0;
+    const badge = document.getElementById('score-badge');
+    badge.textContent = `Puntuación: ${score}/10`;
+    badge.className = 'score-badge ' + (score >= 7 ? 'score-high' : score >= 5 ? 'score-mid' : 'score-low');
+
+    let html = '';
+
+    html += `<div class="resumen-card">
+      <span class="card-tag">Valoración general</span>
+      <p class="card-text">${data.resumen}</p>
+    </div>`;
+
+    if (data.fortalezas) html += card('positive', 'Lo que funciona', data.fortalezas.titulo, `<ul>${data.fortalezas.items.map(i=>`<li>${i}</li>`).join('')}</ul>`);
+    if (data.mejoras) html += card('negative', 'Áreas de mejora', data.mejoras.titulo, `<ul>${data.mejoras.items.map(i=>`<li>${i}</li>`).join('')}</ul>`);
+    if (data.formato) html += card('neutral', 'Formato', data.formato.titulo, data.formato.texto);
+    if (data.fit) html += card('neutral', 'Encaje profesional', data.fit.titulo, data.fit.texto);
+    if (data.siguiente_paso) html += card('positive', 'Acción prioritaria', data.siguiente_paso.titulo, data.siguiente_paso.texto);
+
+    document.getElementById('results-scroll').innerHTML = html;
+    document.getElementById('results-screen').classList.add('visible');
+    document.getElementById('results-scroll').scrollTop = 0;
+  }
+
+  function card(type, tag, title, content) {
+    const cls = type === 'positive' ? 'positive' : type === 'neutral' ? 'neutral' : '';
+    return `<div class="feedback-card ${cls}">
+      <span class="card-tag">${tag}</span>
+      <p class="card-title">${title}</p>
+      <div class="card-text">${content}</div>
+    </div>`;
+  }
+
+  function reset() {
+    pdfBase64 = null;
+    fileInput.value = '';
+    document.getElementById('drop-prompt').style.display = 'block';
+    document.getElementById('file-info').classList.remove('visible');
+    dropZone.classList.remove('has-file');
+    document.getElementById('job-input').value = '';
+    analyzeBtn.disabled = true;
+    document.getElementById('results-screen').classList.remove('visible');
+    document.getElementById('results-scroll').innerHTML = '';
+    document.getElementById('error-msg').classList.remove('visible');
+    document.getElementById('form-screen').style.display = 'block';
+  }
+</script>
+</body>
+</html>
