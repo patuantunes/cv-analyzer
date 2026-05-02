@@ -523,7 +523,7 @@ Devuelve ÚNICAMENTE un JSON con esta estructura exacta (sin markdown, sin backt
 }`;
 
     try {
-      const response = await fetch("/api/anthropic", {
+      const response = await fetch("/.netlify/functions/anthropic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
