@@ -541,6 +541,7 @@ Devuelve ÚNICAMENTE un JSON con esta estructura exacta (sin markdown, sin backt
       });
 
       const data = await response.json();
+      if (!response.ok) throw new Error(JSON.stringify(data));
       const text = data.content?.find(b => b.type === 'text')?.text || '';
       const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
       renderResults(parsed);
@@ -548,7 +549,7 @@ Devuelve ÚNICAMENTE un JSON con esta estructura exacta (sin markdown, sin backt
     } catch (err) {
       document.getElementById('loading-screen').classList.remove('visible');
       document.getElementById('form-screen').style.display = 'block';
-      errorEl.textContent = 'Error al analizar el CV. Comprueba tu conexión e inténtalo de nuevo.';
+      errorEl.textContent = 'Error: ' + (err.message || JSON.stringify(err));
       errorEl.classList.add('visible');
     }
   }
